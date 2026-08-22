@@ -28,6 +28,7 @@ brew trust temikus/tap
 
 | Formula | Version | Description | Install |
 |---------|---------|-------------|---------|
+| [fx](https://github.com/vercel-labs/fx) | v0.0.5 | Tiny, open, embeddable, native coding agent | `brew install temikus/tap/fx` |
 
 ## Maintenance
 

@@ -3,23 +3,31 @@
 default:
 	@just --list
 
-# Audit a specific formula (or all if no argument)
-audit FORMULA='':
-	brew audit --strict --online {{if FORMULA != ''}}--formula ./Formula/{{FORMULA}}.rb{{else}}{{end}}
+# Audit a specific formula (from tap)
+audit FORMULA:
+	brew audit --strict --online {{FORMULA}}
 
-# Install a formula from local file
+# Audit all formulae (from tap)
+audit-all:
+	brew audit --strict --online
+
+# Install a formula from the tap
 install FORMULA:
-	brew install --formula ./Formula/{{FORMULA}}.rb
+	brew install temikus/tap/{{FORMULA}}
 
-# Run a formula's test block
+# Run a formula's test block (requires formula to be installed)
 test FORMULA:
-	brew test --formula ./Formula/{{FORMULA}}.rb
+	brew test {{FORMULA}}
 
 # Install, test, and uninstall in one go
 check FORMULA:
-	just install {{FORMULA}}
-	just test {{FORMULA}}
-	brew uninstall --formula ./Formula/{{FORMULA}}.rb
+	brew install temikus/tap/{{FORMULA}}
+	brew test {{FORMULA}}
+	brew uninstall {{FORMULA}}
+
+# Local formula syntax/style check
+style-check FORMULA:
+	brew style ./Formula/{{FORMULA}}.rb
 
 # Bump a formula to latest upstream release
 bump FORMULA:
@@ -37,6 +45,9 @@ style:
 generate-readme:
 	./scripts/generate-readme.sh
 
-# Audit all formulae
-audit-all:
-	brew audit --strict --online
+# Full CI locally (requires tap to be installed)
+ci:
+	brew test-bot --only-cleanup-before
+	brew test-bot --only-setup
+	brew test-bot --only-tap-syntax
+	brew test-bot --only-formulae
