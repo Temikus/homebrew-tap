@@ -41,25 +41,26 @@ brew trust temikus/tap
 EOF
 
 # Process each formula
-for formula_file in "${REPO_ROOT}"/Formula/*.rb; do
-    [[ -f "${formula_file}" ]] || continue
-    
-    name=$(basename "${formula_file}" .rb)
-    
-    # Extract version from url (tag in release URL)
-    version=$(grep -o '/releases/download/[^/]*' "${formula_file}" | head -1 | sed 's|.*/releases/download/||')
-    [[ -z "${version}" ]] && version="unknown"
-    
-    # Extract desc
-    desc=$(grep '^  desc ' "${formula_file}" | sed 's/^  desc "//; s/"$//')
-    [[ -z "${desc}" ]] && desc="No description"
-    
-    # Extract homepage
-    homepage=$(grep '^  homepage ' "${formula_file}" | sed 's/^  homepage "//; s/"$//')
-    [[ -z "${homepage}" ]] && homepage="https://github.com/temikus/tap"
-    
-    printf "| [%s](%s) | %s | %s | \`brew install temikus/tap/%s\` |\n" \
-        "${name}" "${homepage}" "${version}" "${desc}" "${name}" >>"${TMP_README}"
+for formula_file in "${REPO_ROOT}"/Formula/*.rb
+do
+  [[ -f "${formula_file}" ]] || continue
+
+  name=$(basename "${formula_file}" .rb)
+
+  # Extract version from url (tag in release URL)
+  version=$(grep -o '/releases/download/[^/]*' "${formula_file}" | head -1 | sed 's|.*/releases/download/||')
+  [[ -z "${version}" ]] && version="unknown"
+
+  # Extract desc
+  desc=$(grep '^  desc ' "${formula_file}" | sed 's/^  desc "//; s/"$//')
+  [[ -z "${desc}" ]] && desc="No description"
+
+  # Extract homepage
+  homepage=$(grep '^  homepage ' "${formula_file}" | sed 's/^  homepage "//; s/"$//')
+  [[ -z "${homepage}" ]] && homepage="https://github.com/temikus/tap"
+
+  printf "| [%s](%s) | %s | %s | \`brew install temikus/tap/%s\` |\n" \
+    "${name}" "${homepage}" "${version}" "${desc}" "${name}" >>"${TMP_README}"
 done
 
 cat >>"${TMP_README}" <<'EOF'

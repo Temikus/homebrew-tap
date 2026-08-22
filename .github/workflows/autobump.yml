@@ -24,17 +24,17 @@ jobs:
     steps:
       - name: Set up Homebrew
         id: set-up-homebrew
-        uses: Homebrew/actions/setup-homebrew@master
+        uses: Homebrew/actions/setup-homebrew@1f8e202ffddf94def7f42f6fa3a482e821489f9c
         with:
           core: true
 
       - name: Configure Git user
-        uses: Homebrew/actions/git-user-config@master
+        uses: Homebrew/actions/git-user-config@1f8e202ffddf94def7f42f6fa3a482e821489f9c
         with:
           username: ${{ (github.event_name == 'workflow_dispatch' && github.actor) || 'BrewTestBot' }}
 
       - name: Set up commit signing
-        uses: Homebrew/actions/setup-commit-signing@master
+        uses: Homebrew/actions/setup-commit-signing@1f8e202ffddf94def7f42f6fa3a482e821489f9c
         with:
           signing_key: ${{ secrets.BREWTESTBOT_SSH_SIGNING_KEY }}
 
@@ -52,7 +52,7 @@ jobs:
             FORMULAE="${{ github.event.inputs.formulae }}"
           else
             # Auto-detect all formulae
-            FORMULAE=$(ls Formula/*.rb | xargs -n1 basename | sed 's/\.rb$//' | tr '\n' ' ')
+            FORMULAE=$(find Formula -name '*.rb' -print0 | xargs -0 -n1 basename | sed 's/\.rb$//' | tr '\n' ' ')
           fi
           
           echo "Checking formulae: $FORMULAE"
