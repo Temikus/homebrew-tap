@@ -1,0 +1,44 @@
+name: Scheduled Full Audit
+
+on:
+  schedule:
+    # Weekly on Monday at 03:00
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  full-audit:
+    name: Full Audit (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-14, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - uses: actions/checkout@v4
+
+      - name: Run brew test-bot --only-cleanup-before
+        run: brew test-bot --only-cleanup-before
+
+      - name: Run brew test-bot --only-setup
+        run: brew test-bot --only-setup
+
+      - name: Run brew test-bot --only-tap-syntax
+        run: brew test-bot --only-tap-syntax
+
+      - name: Run brew test-bot --only-formulae (full audit)
+        run: brew test-bot --only-formulae --root-url=https://ghcr.io/v2/temikus/tap
+
+      - name: Run brew audit --strict --online on all formulae
+        run: |
+          for formula in Formula/*.rb; do
+            name=$(basename "$formula" .rb)
+            echo "Auditing $name..."
+            brew audit --strict --online --formula "$formula"
+          done

@@ -1,0 +1,115 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly on Sunday at 02:00
+    - cron: "0 2 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          config-file: '.github/dependency-review-config.yml'
+          fail-on-severity: high
+
+  formula-audit:
+    name: Formula Security Audit
+    runs-on: macos-15
+    steps:
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - uses: actions/checkout@v4
+
+      - name: Audit all formulae for security issues
+        run: |
+          for formula in Formula/*.rb; do
+            name=$(basename "$formula" .rb)
+            echo "Auditing $name..."
+            brew audit --strict --online --formula "$formula"
+          done
+
+  checksum-verification:
+    name: Checksum Verification
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify all formula checksums match upstream
+        run: |
+          for formula in Formula/*.rb; do
+            name=$(basename "$formula" .rb)
+            echo "Verifying checksums for $name..."
+            
+            # Extract upstream repo
+            repo=$(grep -E 'homepage|url' "$formula" | head -1 | sed -E 's|.*github\.com/([^/]+/[^/]+).*|\1|' | sed 's/\.git$//')
+            tag=$(sed -n 's|.*/releases/download/\([^/]*\)/.*|\1|p' "$formula" | head -1)
+            
+            if [[ -z "$repo" || -z "$tag" ]]; then
+              echo "  Skipping $name (no repo/tag found)"
+              continue
+            fi
+            
+            # Check each platform's checksum
+            platforms=$(grep -o 'fx-[a-z0-9-]*\.tar\.gz' "$formula" | sed 's/fx-//; s/\.tar\.gz//' | sort -u)
+            if [[ -z "$platforms" ]]; then
+              platforms=$(grep -o '[a-z0-9-]*\.tar\.gz' "$formula" | sed 's/\.tar\.gz//' | sort -u)
+            fi
+            
+            for platform in $platforms; do
+              expected=$(grep -A1 "fx-${platform}\.tar\.gz" "$formula" | grep sha256 | sed 's/.*sha256 "//; s/"//')
+              if [[ -z "$expected" ]]; then
+                expected=$(grep -A1 "${name}-${platform}\.tar\.gz" "$formula" | grep sha256 | sed 's/.*sha256 "//; s/"//')
+              fi
+              
+              if [[ -n "$expected" ]]; then
+                actual=$(curl -fsSL "https://github.com/${repo}/releases/download/${tag}/fx-${platform}.tar.gz.sha256" 2>/dev/null | awk '{print $1}')
+                if [[ -z "$actual" ]]; then
+                  actual=$(curl -fsSL "https://github.com/${repo}/releases/download/${tag}/${name}-${platform}.tar.gz.sha256" 2>/dev/null | awk '{print $1}')
+                fi
+                
+                if [[ -n "$actual" && "$expected" != "$actual" ]]; then
+                  echo "  ERROR: Checksum mismatch for $platform"
+                  echo "    Formula: $expected"
+                  echo "    Upstream: $actual"
+                  exit 1
+                elif [[ -n "$actual" ]]; then
+                  echo "  OK: $platform"
+                else
+                  echo "  WARNING: No upstream checksum for $platform"
+                fi
+              fi
+            done
+          done

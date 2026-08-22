@@ -1,0 +1,32 @@
+---
+name: Formula Update Request
+about: Request an update to an existing formula
+title: "[UPDATE] <formula-name> <new-version>"
+labels: ["update"]
+assignees: ""
+---
+
+## Formula Information
+
+- **Formula**: <!-- e.g., fx -->
+- **Current Version**: <!-- e.g., v0.0.5 -->
+- **Requested Version**: <!-- e.g., v0.0.6 -->
+- **Upstream Release URL**: <!-- e.g., https://github.com/vercel-labs/fx/releases/tag/v0.0.6 -->
+
+## Changes
+
+- [ ] Version bump only
+- [ ] Checksum updates needed
+- [ ] New platforms added/removed
+- [ ] Formula logic changes needed
+- [ ] Dependency changes
+
+## Testing
+
+- [ ] `just bump FORMULA` works locally
+- [ ] `just check FORMULA` passes
+- [ ] Checksums verified against upstream
+
+## Additional Context
+
+<!-- Any other information -->

@@ -1,0 +1,39 @@
+---
+name: New Formula Request
+about: Request a new formula to be added to the tap
+title: "[NEW] <formula-name>"
+labels: ["new-formula"]
+assignees: ""
+---
+
+## Formula Information
+
+- **Name**: <!-- e.g., fd, ripgrep, starship -->
+- **Upstream Repository**: <!-- e.g., https://github.com/sharkdp/fd -->
+- **License**: <!-- SPDX identifier, e.g., MIT, Apache-2.0 -->
+- **Latest Version**: <!-- e.g., v10.2.0 -->
+
+## Platform Support
+
+- [ ] macOS (Apple Silicon)
+- [ ] macOS (Intel)
+- [ ] Linux (ARM64)
+- [ ] Linux (x86_64)
+
+## Installation Method
+
+- [ ] Pre-built binaries from GitHub Releases (preferred)
+- [ ] Build from source
+- [ ] Other: <!-- specify -->
+
+## Checklist
+
+- [ ] Upstream provides pre-built binaries for all platforms above
+- [ ] Upstream publishes `.sha256` checksum files alongside releases
+- [ ] Binary name doesn't conflict with homebrew-core
+- [ ] Formula includes `livecheck` block for auto-bump
+- [ ] Formula includes test block
+
+## Additional Context
+
+<!-- Any other information, e.g., why this tool, alternatives considered, etc. -->

@@ -1,0 +1,63 @@
+name: Auto-bump formulae
+
+on:
+  workflow_dispatch:
+    inputs:
+      formulae:
+        description: Comma-separated list of formulae to check (empty = all)
+        required: false
+  schedule:
+    # Daily at 04:23
+    - cron: "23 4 * * *"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  autobump:
+    name: Auto-bump
+    if: github.repository == 'temikus/tap'
+    env:
+      HOMEBREW_DEVELOPER: 1
+    runs-on: macos-15
+    steps:
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+        with:
+          core: true
+
+      - name: Configure Git user
+        uses: Homebrew/actions/git-user-config@master
+        with:
+          username: ${{ (github.event_name == 'workflow_dispatch' && github.actor) || 'BrewTestBot' }}
+
+      - name: Set up commit signing
+        uses: Homebrew/actions/setup-commit-signing@master
+        with:
+          signing_key: ${{ secrets.BREWTESTBOT_SSH_SIGNING_KEY }}
+
+      - name: Bump formulae
+        id: autobump
+        env:
+          HOMEBREW_TEST_BOT_AUTOBUMP: 1
+          HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
+          HOMEBREW_GIT_COMMITTER_NAME: BrewTestBot
+          HOMEBREW_GIT_COMMITTER_EMAIL: 1589480+BrewTestBot@users.noreply.github.com
+        continue-on-error: true
+        run: |
+          # Get list of formulae to bump
+          if [[ -n "${{ github.event.inputs.formulae }}" ]]; then
+            FORMULAE="${{ github.event.inputs.formulae }}"
+          else
+            # Auto-detect all formulae
+            FORMULAE=$(ls Formula/*.rb | xargs -n1 basename | sed 's/\.rb$//' | tr '\n' ' ')
+          fi
+          
+          echo "Checking formulae: $FORMULAE"
+          
+          for formula in $FORMULAE; do
+            echo "Processing $formula..."
+            brew bump-formula-pr --no-fork --no-audit --tap=temikus/tap "$formula" || true
+          done

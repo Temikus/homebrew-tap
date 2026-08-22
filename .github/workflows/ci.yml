@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly, to catch upstream release churn
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+jobs:
+  test-bot:
+    name: brew test-bot (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-14, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - uses: actions/checkout@v4
+
+      - run: brew test-bot --only-cleanup-before
+
+      - run: brew test-bot --only-setup
+
+      - run: brew test-bot --only-tap-syntax
+
+      - run: brew test-bot --only-formulae --root-url=https://ghcr.io/v2/temikus/tap
+        if: github.event_name == 'pull_request'
+
+  style:
+    name: Style (brew style)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+      - run: brew style .
+
+  verify-bump:
+    name: Verify bump script (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Re-bump each formula to pinned tag and assert no drift
+        run: |
+          for formula in Formula/*.rb; do
+            name=$(basename "$formula" .rb)
+            tag="$(sed -n 's|.*/releases/download/\([^/]*\)/.*|\1|p' "$formula" | head -1)"
+            if [[ -n "$tag" ]]; then
+              echo "Checking $name @ $tag"
+              ./scripts/bump-formula.sh "$name" "$tag" --verify
+            else
+              echo "Skipping $name (no tag found)"
+            fi
+          done
