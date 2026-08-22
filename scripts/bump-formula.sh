@@ -93,24 +93,26 @@ sed -E "s|/releases/download/[^/]+/|/releases/download/${TAG}/|g" "${FORMULA_FIL
 # Update checksums for each platform
 # Detect platforms from the formula
 PLATFORMS=()
+fx_patterns=$(grep -o 'fx-[a-z0-9-]*\.tar\.gz' "${FORMULA_FILE}" | sort -u || true)
 while IFS= read -r line
 do
   if [[ "${line}" =~ fx-([a-z0-9-]+)\.tar\.gz ]]
   then
     PLATFORMS+=("${BASH_REMATCH[1]}")
   fi
-done < <(grep -o 'fx-[a-z0-9-]*\.tar\.gz' "${FORMULA_FILE}" | sort -u)
+done <<<"${fx_patterns}"
 
 # If no fx- pattern, try generic pattern
 if [[ ${#PLATFORMS[@]} -eq 0 ]]
 then
+  generic_patterns=$(grep -o '[a-z0-9-]*\.tar\.gz' "${FORMULA_FILE}" | grep -v '^fx-' | sort -u || true)
   while IFS= read -r line
   do
     if [[ "${line}" =~ ([a-z0-9-]+)\.tar\.gz ]]
     then
       PLATFORMS+=("${BASH_REMATCH[1]}")
     fi
-  done < <(grep -o '[a-z0-9-]*\.tar\.gz' "${FORMULA_FILE}" | grep -v '^fx-' | sort -u)
+  done <<<"${generic_patterns}"
 fi
 
 # Default platforms if detection fails
