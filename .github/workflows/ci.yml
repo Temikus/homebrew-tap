@@ -22,6 +22,8 @@ jobs:
         uses: Homebrew/actions/setup-homebrew@1f8e202ffddf94def7f42f6fa3a482e821489f9c
 
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - run: brew test-bot --only-cleanup-before
 
@@ -29,8 +31,20 @@ jobs:
 
       - run: brew test-bot --only-tap-syntax
 
-      - run: brew test-bot --only-formulae --root-url=https://ghcr.io/v2/temikus/tap
+      # test-bot errors out instead of no-opping when a PR touches no formulae.
+      - name: Detect formula changes
+        id: formula-changes
         if: github.event_name == 'pull_request'
+        run: |
+          if git diff --name-only "${{ github.event.pull_request.base.sha }}" HEAD \
+            | grep -qE '^Formula/.*\.rb$'; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - run: brew test-bot --only-formulae --root-url=https://ghcr.io/v2/temikus/tap
+        if: github.event_name == 'pull_request' && steps.formula-changes.outputs.changed == 'true'
 
   style:
     name: Style (brew style)

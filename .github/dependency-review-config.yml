@@ -4,7 +4,8 @@
 # Fail on high severity vulnerabilities
 fail-on-severity: high
 
-# Allow specific licenses
+# Allow specific licenses. Note: allow-licenses and deny-licenses are mutually
+# exclusive - an allowlist already denies everything else.
 allow-licenses:
   - MIT
   - Apache-2.0
@@ -12,12 +13,6 @@ allow-licenses:
   - BSD-3-Clause
   - ISC
   - CC0-1.0
-
-# Deny specific licenses
-deny-licenses:
-  - GPL-2.0-only
-  - GPL-3.0-only
-  - AGPL-3.0-only
 
 # Private packages are allowed (tap doesn't have private deps)
 private-packages-allowed: true
