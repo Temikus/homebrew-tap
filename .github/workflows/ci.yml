@@ -88,3 +88,21 @@ jobs:
               echo "Skipping $name (no tag found)"
             fi
           done
+
+  ci:
+    name: ci
+    # Aggregate gate. Branch protection requires this one context, so adding or
+    # dropping a matrix entry above never leaves protection referencing a job
+    # that no longer reports.
+    needs: [test-bot, style, verify-bump]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assert every CI job succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Job results: $RESULTS"
+          case "$RESULTS" in
+            *failure*|*cancelled*) exit 1 ;;
+          esac
