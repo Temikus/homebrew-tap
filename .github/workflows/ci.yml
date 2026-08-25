@@ -23,18 +23,27 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
+          path: tap
           fetch-depth: 0
+
+      # Without an installed tap, test-bot falls back to linting homebrew/core.
+      - name: Link checkout as a tap
+        run: |
+          tap_dir="$(brew --repository)/Library/Taps/temikus/homebrew-tap"
+          mkdir -p "$(dirname "$tap_dir")"
+          ln -s "$GITHUB_WORKSPACE/tap" "$tap_dir"
 
       - run: brew test-bot --only-cleanup-before
 
       - run: brew test-bot --only-setup
 
-      - run: brew test-bot --only-tap-syntax
+      - run: brew test-bot --only-tap-syntax --tap=temikus/tap
 
       # test-bot errors out instead of no-opping when a PR touches no formulae.
       - name: Detect formula changes
         id: formula-changes
         if: github.event_name == 'pull_request'
+        working-directory: tap
         run: |
           if git diff --name-only "${{ github.event.pull_request.base.sha }}" HEAD \
             | grep -qE '^Formula/.*\.rb$'; then
@@ -43,7 +52,8 @@ jobs:
             echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - run: brew test-bot --only-formulae --root-url=https://ghcr.io/v2/temikus/tap
+      - run: brew test-bot --only-formulae --tap=temikus/tap --root-url=https://ghcr.io/v2/temikus/tap
+        working-directory: tap
         if: github.event_name == 'pull_request' && steps.formula-changes.outputs.changed == 'true'
 
   style:
