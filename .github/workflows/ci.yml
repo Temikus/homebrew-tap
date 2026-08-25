@@ -26,16 +26,17 @@ jobs:
           path: tap
           fetch-depth: 0
 
+      - run: brew test-bot --only-cleanup-before
+
+      - run: brew test-bot --only-setup
+
       # Without an installed tap, test-bot falls back to linting homebrew/core.
+      # Must come after --only-cleanup-before, which prunes unknown taps.
       - name: Link checkout as a tap
         run: |
           tap_dir="$(brew --repository)/Library/Taps/temikus/homebrew-tap"
           mkdir -p "$(dirname "$tap_dir")"
           ln -s "$GITHUB_WORKSPACE/tap" "$tap_dir"
-
-      - run: brew test-bot --only-cleanup-before
-
-      - run: brew test-bot --only-setup
 
       - run: brew test-bot --only-tap-syntax --tap=temikus/tap
 
