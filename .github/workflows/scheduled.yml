@@ -21,7 +21,7 @@ jobs:
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@1f8e202ffddf94def7f42f6fa3a482e821489f9c
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Run brew test-bot --only-cleanup-before
         run: brew test-bot --only-cleanup-before
