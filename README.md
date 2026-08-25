@@ -29,6 +29,7 @@ brew trust temikus/tap
 | Formula | Version | Description | Install |
 |---------|---------|-------------|---------|
 | [fx](https://github.com/vercel-labs/fx) | v0.0.5 | Tiny, open, embeddable, native coding agent | `brew install temikus/tap/fx` |
+| [maki](https://maki.sh) | v0.4.11 | AI coding agent for the terminal, extendable by neovim-like Lua plugins | `brew install temikus/tap/maki` |
 
 ## Maintenance
 
