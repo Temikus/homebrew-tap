@@ -51,17 +51,10 @@ jobs:
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@3cdb78d0f62ad29dd32de765782654f4eedea607
 
+      # setup-homebrew recognises a homebrew-* repo as a tap and symlinks the
+      # workspace into Library/Taps itself, which is what makes the checkout
+      # visible to brew audit, which only accepts formula names.
       - uses: actions/checkout@v7
-        with:
-          path: tap
-
-      # brew audit only accepts formula names, so the checkout has to be visible
-      # to Homebrew as an installed tap.
-      - name: Link checkout as a tap
-        run: |
-          tap_dir="$(brew --repository)/Library/Taps/temikus/homebrew-tap"
-          mkdir -p "$(dirname "$tap_dir")"
-          ln -s "$GITHUB_WORKSPACE/tap" "$tap_dir"
 
       - name: Audit all formulae for security issues
         run: brew audit --strict --online --tap temikus/tap

@@ -1,6 +1,6 @@
 # temikus/tap
 
-[![CI](https://github.com/temikus/tap/actions/workflows/ci.yml/badge.svg)](https://github.com/temikus/tap/actions/workflows/ci.yml)
+[![CI](https://github.com/temikus/homebrew-tap/actions/workflows/ci.yml/badge.svg)](https://github.com/temikus/homebrew-tap/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 General-purpose Homebrew tap for miscellaneous tools I want to keep for myself and share with others.

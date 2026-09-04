@@ -10,7 +10,7 @@ TMP_README=$(mktemp)
 cat >"${TMP_README}" <<'EOF'
 # temikus/tap
 
-[![CI](https://github.com/temikus/tap/actions/workflows/ci.yml/badge.svg)](https://github.com/temikus/tap/actions/workflows/ci.yml)
+[![CI](https://github.com/temikus/homebrew-tap/actions/workflows/ci.yml/badge.svg)](https://github.com/temikus/homebrew-tap/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 General-purpose Homebrew tap for miscellaneous tools I want to keep for myself and share with others.
@@ -57,7 +57,7 @@ do
 
   # Extract homepage
   homepage=$(grep '^  homepage ' "${formula_file}" | sed 's/^  homepage "//; s/"$//')
-  [[ -z "${homepage}" ]] && homepage="https://github.com/temikus/tap"
+  [[ -z "${homepage}" ]] && homepage="https://github.com/temikus/homebrew-tap"
 
   printf "| [%s](%s) | %s | %s | \`brew install temikus/tap/%s\` |\n" \
     "${name}" "${homepage}" "${version}" "${desc}" "${name}" >>"${TMP_README}"
