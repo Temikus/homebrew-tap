@@ -17,7 +17,7 @@ permissions:
 jobs:
   autobump:
     name: Auto-bump
-    if: github.repository == 'temikus/tap'
+    if: github.repository == 'temikus/homebrew-tap'
     runs-on: ubuntu-latest
     steps:
       # An optional PAT makes the resulting PR trigger CI. Pushes and PRs
