@@ -10,8 +10,8 @@ class Fx < Formula
 
   on_macos do
     on_arm do
-      url "https://github.com/vercel-labs/fx/releases/download/v0.0.5/fx-macos-aarch64.tar.gz"
-      sha256 "2b98cc1a85c1cf5ea213f1df71cca79f7cbff65793d2a87282c04ca019cbd1c1"
+      url "https://github.com/vercel-labs/fx/archive/refs/tags/v0.0.7.tar.gz"
+      sha256 "bcbf3850b8e3ebcc1e8728104eec76242dd43399fe0c08b625887b2a6673427f"
     end
     on_intel do
       url "https://github.com/vercel-labs/fx/releases/download/v0.0.5/fx-macos-x86_64.tar.gz"
