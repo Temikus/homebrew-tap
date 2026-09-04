@@ -21,22 +21,15 @@ jobs:
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@3cdb78d0f62ad29dd32de765782654f4eedea607
 
+      # setup-homebrew recognises a homebrew-* repo as a tap and symlinks the
+      # workspace into Library/Taps itself, so no checkout path juggling here.
       - uses: actions/checkout@v7
         with:
-          path: tap
           fetch-depth: 0
 
       - run: brew test-bot --only-cleanup-before
 
       - run: brew test-bot --only-setup
-
-      # Without an installed tap, test-bot falls back to linting homebrew/core.
-      # Must come after --only-cleanup-before, which prunes unknown taps.
-      - name: Link checkout as a tap
-        run: |
-          tap_dir="$(brew --repository)/Library/Taps/temikus/homebrew-tap"
-          mkdir -p "$(dirname "$tap_dir")"
-          ln -s "$GITHUB_WORKSPACE/tap" "$tap_dir"
 
       - run: brew test-bot --only-tap-syntax --tap=temikus/tap
 
@@ -44,7 +37,6 @@ jobs:
       - name: Detect formula changes
         id: formula-changes
         if: github.event_name == 'pull_request'
-        working-directory: tap
         run: |
           if git diff --name-only "${{ github.event.pull_request.base.sha }}" HEAD \
             | grep -qE '^Formula/.*\.rb$'; then
@@ -54,7 +46,6 @@ jobs:
           fi
 
       - run: brew test-bot --only-formulae --tap=temikus/tap --root-url=https://ghcr.io/v2/temikus/tap
-        working-directory: tap
         if: github.event_name == 'pull_request' && steps.formula-changes.outputs.changed == 'true'
 
   style:
