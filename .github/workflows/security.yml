@@ -49,7 +49,7 @@ jobs:
     runs-on: macos-26
     steps:
       - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@1f8e202ffddf94def7f42f6fa3a482e821489f9c
+        uses: Homebrew/actions/setup-homebrew@3cdb78d0f62ad29dd32de765782654f4eedea607
 
       - uses: actions/checkout@v7
         with:
