@@ -86,3 +86,20 @@ jobs:
             echo "Verifying $name @ $tag..."
             ./scripts/bump-formula.sh "$name" "$tag" --verify
           done
+
+  security:
+    name: security
+    # Aggregate gate, see the `ci` job in ci.yml. `skipped` is tolerated because
+    # dependency-review only runs on pull_request.
+    needs: [secret-scan, dependency-review, formula-audit, checksum-verification]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assert every security job succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Job results: $RESULTS"
+          case "$RESULTS" in
+            *failure*|*cancelled*) exit 1 ;;
+          esac
