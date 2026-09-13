@@ -35,7 +35,7 @@ bump FORMULA:
 
 # Verify bump script reproduces current formula exactly
 verify-bump FORMULA:
-	./scripts/bump-formula.sh {{FORMULA}} --verify
+	./scripts/bump-formula.sh {{FORMULA}} "$(sed -n 's|.*/releases/download/\([^/]*\)/.*|\1|p' Formula/{{FORMULA}}.rb | head -1)" --verify
 
 # Lint the whole tap (formulae, workflows, shell scripts)
 style:

@@ -30,10 +30,22 @@ jobs:
         run: brew test-bot --only-setup
 
       - name: Run brew test-bot --only-tap-syntax
-        run: brew test-bot --only-tap-syntax
+        run: brew test-bot --only-tap-syntax --tap=temikus/tap
 
+      # Without a PR diff test-bot has nothing to test unless formulae are named
       - name: Run brew test-bot --only-formulae (full audit)
-        run: brew test-bot --only-formulae --root-url=https://ghcr.io/v2/temikus/tap
+        run: |
+          formulae=()
+          for f in Formula/*.rb; do formulae+=("temikus/tap/$(basename "$f" .rb)"); done
+          brew test-bot --only-formulae --tap=temikus/tap --root-url=https://ghcr.io/v2/temikus/tap "${formulae[@]}"
+
+      # test-bot exits 0 when it downgrades failures of unbottled formulae to "ignored"
+      - name: Fail on ignored test-bot steps
+        run: |
+          if ! grep -qx 'All steps passed!' steps_output.txt; then
+            cat steps_output.txt
+            exit 1
+          fi
 
       - name: Run brew audit --strict --online on all formulae
         run: |

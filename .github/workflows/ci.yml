@@ -48,6 +48,16 @@ jobs:
       - run: brew test-bot --only-formulae --tap=temikus/tap --root-url=https://ghcr.io/v2/temikus/tap
         if: github.event_name == 'pull_request' && steps.formula-changes.outputs.changed == 'true'
 
+      # test-bot downgrades install/test failures to "ignored" (exit 0) for
+      # existing formulae without a bottle for the runner, i.e. all of ours.
+      - name: Fail on ignored test-bot steps
+        if: github.event_name == 'pull_request' && steps.formula-changes.outputs.changed == 'true'
+        run: |
+          if ! grep -qx 'All steps passed!' steps_output.txt; then
+            cat steps_output.txt
+            exit 1
+          fi
+
   style:
     name: Style (brew style)
     runs-on: ubuntu-latest
