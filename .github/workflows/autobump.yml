@@ -1,10 +1,10 @@
-name: Auto-bump formulae
+name: Auto-bump formulae and casks
 
 on:
   workflow_dispatch:
     inputs:
       formulae:
-        description: Space-separated list of formulae to check (empty = all)
+        description: Space-separated formulae or casks to check (empty = all)
         required: false
   schedule:
     # Daily at 04:23
@@ -39,37 +39,58 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Names resolve to Formula/<name>.rb first, then Casks/<name>.rb
           if [[ -n "${INPUT_FORMULAE}" ]]; then
-            read -ra formulae <<<"${INPUT_FORMULAE}"
+            read -ra names <<<"${INPUT_FORMULAE}"
+            files=()
+            for name in "${names[@]}"; do
+              if [[ -f "Formula/${name}.rb" ]]; then
+                files+=("Formula/${name}.rb")
+              elif [[ -f "Casks/${name}.rb" ]]; then
+                files+=("Casks/${name}.rb")
+              else
+                echo "No formula or cask named ${name}" >&2
+                exit 1
+              fi
+            done
           else
-            formulae=()
+            files=()
             while IFS= read -r f; do
-              formulae+=("${f}")
-            done < <(find Formula -name '*.rb' -exec basename {} .rb \;)
+              files+=("${f}")
+            done < <(find Formula Casks -name '*.rb' 2>/dev/null | sort)
           fi
 
-          echo "Checking: ${formulae[*]}"
+          echo "Checking: ${files[*]}"
           failed=""
           base_sha="$(git rev-parse HEAD)"
 
-          for formula in "${formulae[@]}"; do
-            echo "::group::${formula}"
+          for file in "${files[@]}"; do
+            name="$(basename "${file}" .rb)"
+            echo "::group::${file}"
             git checkout -f "${base_sha}"
 
-            if ! ./scripts/bump-formula.sh "${formula}"; then
-              failed="${failed} ${formula}"
+            case "${file}" in
+              Casks/*) bump=./scripts/bump-cask.sh ;;
+              *) bump=./scripts/bump-formula.sh ;;
+            esac
+
+            if ! "${bump}" "${name}"; then
+              failed="${failed} ${file}"
               echo "::endgroup::"
               continue
             fi
 
-            if git diff --quiet -- "Formula/${formula}.rb"; then
-              echo "${formula} already up to date"
+            if git diff --quiet -- "${file}"; then
+              echo "${name} already up to date"
               echo "::endgroup::"
               continue
             fi
 
-            tag="$(sed -n 's|.*/releases/download/\([^/]*\)/.*|\1|p' "Formula/${formula}.rb" | head -1)"
-            branch="autobump/${formula}-${tag}"
+            case "${file}" in
+              Casks/*) tag="$(./scripts/cask-tag.sh "${file}")" ;;
+              *) tag="$(sed -n 's|.*/releases/download/\([^/]*\)/.*|\1|p' "${file}" | head -1)" ;;
+            esac
+            branch="autobump/${name}-${tag}"
 
             if git ls-remote --exit-code --heads origin "${branch}" >/dev/null 2>&1; then
               echo "${branch} already exists, skipping"
@@ -78,13 +99,13 @@ jobs:
             fi
 
             git checkout -b "${branch}"
-            git commit -m "${formula} ${tag}" -- "Formula/${formula}.rb"
+            git commit -m "${name} ${tag}" -- "${file}"
             git push origin "${branch}"
             gh pr create \
               --base main \
               --head "${branch}" \
-              --title "${formula} ${tag}" \
-              --body "Automated bump of \`${formula}\` to \`${tag}\`. Checksums verified against upstream release assets."
+              --title "${name} ${tag}" \
+              --body "Automated bump of \`${name}\` to \`${tag}\`. Checksums verified against upstream release assets."
             echo "::endgroup::"
           done
 

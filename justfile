@@ -37,7 +37,25 @@ bump FORMULA:
 verify-bump FORMULA:
 	./scripts/bump-formula.sh {{FORMULA}} "$(sed -n 's|.*/releases/download/\([^/]*\)/.*|\1|p' Formula/{{FORMULA}}.rb | head -1)" --verify
 
-# Lint the whole tap (formulae, workflows, shell scripts)
+# Audit a cask for both architectures (from tap)
+audit-cask CASK:
+	brew audit --cask --strict --online --arch=arm temikus/tap/{{CASK}}
+	brew audit --cask --strict --online --arch=intel temikus/tap/{{CASK}}
+
+# Install and uninstall a cask (from tap)
+check-cask CASK:
+	brew install --cask temikus/tap/{{CASK}}
+	brew uninstall --cask temikus/tap/{{CASK}}
+
+# Bump a cask to latest upstream release
+bump-cask CASK:
+	./scripts/bump-cask.sh {{CASK}}
+
+# Verify bump script reproduces current cask exactly
+verify-bump-cask CASK:
+	./scripts/bump-cask.sh {{CASK}} "$(./scripts/cask-tag.sh Casks/{{CASK}}.rb)" --verify
+
+# Lint the whole tap (formulae, casks, workflows, shell scripts)
 style:
 	brew style .
 
