@@ -88,6 +88,16 @@ fi
 
 echo "Current tag: ${CURRENT_TAG}"
 
+# Rewriting only touches release URLs, so an archive URL or a stale tag on one
+# platform would be silently carried forward (e.g. a partial Renovate bump).
+STRAY_URLS=$(grep -E '^\s*url "' "${FORMULA_FILE}" | grep -v "/releases/download/${CURRENT_TAG}/" || true)
+if [[ -n "${STRAY_URLS}" ]]
+then
+  echo "Every url must be a release asset for ${CURRENT_TAG}, found:" >&2
+  echo "${STRAY_URLS}" >&2
+  exit 1
+fi
+
 # Rewrite the tag everywhere it appears on a release URL line. Some projects
 # embed the version in the asset filename too, not just the /download/<tag>/ path.
 TMP_FILE=$(mktemp)

@@ -65,6 +65,33 @@ done
 
 cat >>"${TMP_README}" <<'EOF'
 
+## Casks
+
+| Cask | Version | Description | Install |
+|------|---------|-------------|---------|
+EOF
+
+for cask_file in "${REPO_ROOT}"/Casks/*.rb
+do
+  [[ -f "${cask_file}" ]] || continue
+
+  name=$(basename "${cask_file}" .rb)
+
+  version=$(sed -n 's/^  version "\(.*\)"$/\1/p' "${cask_file}" | head -1)
+  [[ -z "${version}" ]] && version="unknown"
+
+  desc=$(sed -n 's/^  desc "\(.*\)"$/\1/p' "${cask_file}")
+  [[ -z "${desc}" ]] && desc="No description"
+
+  homepage=$(sed -n 's/^  homepage "\(.*\)"$/\1/p' "${cask_file}")
+  [[ -z "${homepage}" ]] && homepage="https://github.com/temikus/homebrew-tap"
+
+  printf "| [%s](%s) | v%s | %s | \`brew install --cask temikus/tap/%s\` |\n" \
+    "${name}" "${homepage}" "${version}" "${desc}" "${name}" >>"${TMP_README}"
+done
+
+cat >>"${TMP_README}" <<'EOF'
+
 ## Maintenance
 
 Requires [`just`](https://github.com/casey/just):
@@ -78,13 +105,17 @@ Requires [`just`](https://github.com/casey/just):
 | `just style` | Lint the tap the way CI does |
 | `just bump FORMULA` | Rewrite formula for latest upstream release |
 | `just verify-bump FORMULA` | Check bump script reproduces pinned formula exactly |
-| `just generate-readme` | Regenerate this README from formulae |
+| `just audit-cask CASK` | `brew audit --cask --strict --online` for arm and intel |
+| `just check-cask CASK` | Install and uninstall a cask |
+| `just bump-cask CASK` | Rewrite cask for latest upstream release |
+| `just verify-bump-cask CASK` | Check bump script reproduces pinned cask exactly |
+| `just generate-readme` | Regenerate this README from formulae and casks |
 | `just audit-all` | Audit all formulae |
 
 ## CI / Automation
 
-- **CI** (`.github/workflows/ci.yml`): Runs on every push/PR — syntax check, style, audit, test on macOS 14/15 + Ubuntu
-- **Auto-bump** (`.github/workflows/autobump.yml`): Daily check for upstream updates, opens PRs
+- **CI** (`.github/workflows/ci.yml`): Runs on every push/PR — syntax check, style, audit, test on macOS 14/15 + Ubuntu, cask audit and install on macOS
+- **Auto-bump** (`.github/workflows/autobump.yml`): Daily check for upstream formula and cask updates, opens PRs
 - **Scheduled** (`.github/workflows/scheduled.yml`): Weekly full audit
 - **Security** (`.github/workflows/security.yml`): Secret scanning, dependency review
 

@@ -48,6 +48,52 @@ jobs:
       - run: brew test-bot --only-formulae --tap=temikus/tap --root-url=https://ghcr.io/v2/temikus/tap
         if: github.event_name == 'pull_request' && steps.formula-changes.outputs.changed == 'true'
 
+      # test-bot downgrades install/test failures to "ignored" (exit 0) for
+      # existing formulae without a bottle for the runner, i.e. all of ours.
+      - name: Fail on ignored test-bot steps
+        if: github.event_name == 'pull_request' && steps.formula-changes.outputs.changed == 'true'
+        run: |
+          if ! grep -qx 'All steps passed!' steps_output.txt; then
+            cat steps_output.txt
+            exit 1
+          fi
+
+  cask:
+    name: Cask audit and install
+    runs-on: macos-15
+    steps:
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@3cdb78d0f62ad29dd32de765782654f4eedea607
+
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Select casks
+        id: casks
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            files=$(git diff --name-only --diff-filter=AM "${{ github.event.pull_request.base.sha }}" HEAD -- 'Casks/*.rb')
+          else
+            files=$(ls Casks/*.rb 2>/dev/null || true)
+          fi
+          names=$(for f in $files; do basename "$f" .rb; done | xargs)
+          echo "names=${names}" >> "$GITHUB_OUTPUT"
+
+      - name: Audit and install
+        if: steps.casks.outputs.names != ''
+        env:
+          CASKS: ${{ steps.casks.outputs.names }}
+        run: |
+          brew trust temikus/tap
+          for cask in $CASKS; do
+            for arch in arm intel; do
+              brew audit --cask --strict --online --arch="$arch" "temikus/tap/$cask"
+            done
+            brew install --cask "temikus/tap/$cask"
+            brew uninstall --cask "temikus/tap/$cask"
+          done
+
   style:
     name: Style (brew style)
     runs-on: ubuntu-latest
@@ -80,12 +126,24 @@ jobs:
             fi
           done
 
+      - name: Re-bump each cask to pinned version and assert no drift
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for cask in Casks/*.rb; do
+            [[ -f "$cask" ]] || continue
+            name=$(basename "$cask" .rb)
+            tag=$(./scripts/cask-tag.sh "$cask")
+            echo "Checking $name @ $tag"
+            ./scripts/bump-cask.sh "$name" "$tag" --verify
+          done
+
   ci:
     name: ci
     # Aggregate gate. Branch protection requires this one context, so adding or
     # dropping a matrix entry above never leaves protection referencing a job
     # that no longer reports.
-    needs: [test-bot, style, verify-bump]
+    needs: [test-bot, cask, style, verify-bump]
     if: always()
     runs-on: ubuntu-latest
     steps:

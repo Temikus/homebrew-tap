@@ -30,10 +30,22 @@ jobs:
         run: brew test-bot --only-setup
 
       - name: Run brew test-bot --only-tap-syntax
-        run: brew test-bot --only-tap-syntax
+        run: brew test-bot --only-tap-syntax --tap=temikus/tap
 
+      # Without a PR diff test-bot has nothing to test unless formulae are named
       - name: Run brew test-bot --only-formulae (full audit)
-        run: brew test-bot --only-formulae --root-url=https://ghcr.io/v2/temikus/tap
+        run: |
+          formulae=()
+          for f in Formula/*.rb; do formulae+=("temikus/tap/$(basename "$f" .rb)"); done
+          brew test-bot --only-formulae --tap=temikus/tap --root-url=https://ghcr.io/v2/temikus/tap "${formulae[@]}"
+
+      # test-bot exits 0 when it downgrades failures of unbottled formulae to "ignored"
+      - name: Fail on ignored test-bot steps
+        run: |
+          if ! grep -qx 'All steps passed!' steps_output.txt; then
+            cat steps_output.txt
+            exit 1
+          fi
 
       - name: Run brew audit --strict --online on all formulae
         run: |
@@ -41,4 +53,17 @@ jobs:
             name=$(basename "$formula" .rb)
             echo "Auditing $name..."
             brew audit --strict --online --formula "$formula"
+          done
+
+      - name: Run brew audit --strict --online on all casks
+        if: runner.os == 'macOS'
+        run: |
+          brew trust temikus/tap
+          for cask in Casks/*.rb; do
+            [[ -f "$cask" ]] || continue
+            name=$(basename "$cask" .rb)
+            for arch in arm intel; do
+              echo "Auditing $name ($arch)..."
+              brew audit --cask --strict --online --arch="$arch" "temikus/tap/$name"
+            done
           done
