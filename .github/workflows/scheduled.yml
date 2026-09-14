@@ -54,3 +54,16 @@ jobs:
             echo "Auditing $name..."
             brew audit --strict --online --formula "$formula"
           done
+
+      - name: Run brew audit --strict --online on all casks
+        if: runner.os == 'macOS'
+        run: |
+          brew trust temikus/tap
+          for cask in Casks/*.rb; do
+            [[ -f "$cask" ]] || continue
+            name=$(basename "$cask" .rb)
+            for arch in arm intel; do
+              echo "Auditing $name ($arch)..."
+              brew audit --cask --strict --online --arch="$arch" "temikus/tap/$name"
+            done
+          done
