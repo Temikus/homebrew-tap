@@ -60,7 +60,7 @@ jobs:
 
   cask:
     name: Cask audit and install
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@3cdb78d0f62ad29dd32de765782654f4eedea607
