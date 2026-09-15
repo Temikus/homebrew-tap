@@ -10,23 +10,23 @@ class Fx < Formula
 
   on_macos do
     on_arm do
-      url "https://github.com/vercel-labs/fx/releases/download/v0.0.7/fx-macos-aarch64.tar.gz"
-      sha256 "497cbabc50c57ecf81f8affe042a07d930c0418868e767b28afada4bddd05748"
+      url "https://github.com/vercel-labs/fx/releases/download/v0.0.10/fx-macos-aarch64.tar.gz"
+      sha256 "b3f0121e46f8227690def72b920d9d1fc299f0b73dd7eb91382bd83674219876"
     end
     on_intel do
-      url "https://github.com/vercel-labs/fx/releases/download/v0.0.7/fx-macos-x86_64.tar.gz"
-      sha256 "c457e4ef41fbcfcb67718ba07a21f5e00418295127f99980ea8ce38d955dd546"
+      url "https://github.com/vercel-labs/fx/releases/download/v0.0.10/fx-macos-x86_64.tar.gz"
+      sha256 "0dd01badf66d1b8a0fe538e9fd5e42b3b4dcafd6aa9327ee9b9611a3d01d6e18"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/vercel-labs/fx/releases/download/v0.0.7/fx-linux-aarch64.tar.gz"
-      sha256 "4a3fb1b0114b8a4f933de64f85fb2288095c17631a0c3ca897aa05601d049974"
+      url "https://github.com/vercel-labs/fx/releases/download/v0.0.10/fx-linux-aarch64.tar.gz"
+      sha256 "27134fadb97e98e5c847070f96c211da1b2bfc9babf5573baa7537282362fbd8"
     end
     on_intel do
-      url "https://github.com/vercel-labs/fx/releases/download/v0.0.7/fx-linux-x86_64.tar.gz"
-      sha256 "c5787ea041d3b5521ec675f1ada78f30cf1b11021ffcac48b4969cf5beb65c45"
+      url "https://github.com/vercel-labs/fx/releases/download/v0.0.10/fx-linux-x86_64.tar.gz"
+      sha256 "45bf4d88e786f549039a10ce1402831b9937e716956a6ef905a0d3cbe6bd97af"
     end
   end
 
