@@ -92,20 +92,28 @@ jobs:
             esac
             branch="autobump/${name}-${tag}"
 
+            # A branch without a PR means an earlier `gh pr create` failed; retry it.
+            # Closed or merged PRs count, so a rejected bump isn't reopened.
             if git ls-remote --exit-code --heads origin "${branch}" >/dev/null 2>&1; then
-              echo "${branch} already exists, skipping"
-              echo "::endgroup::"
-              continue
+              if [[ -n "$(gh pr list --head "${branch}" --state all --json number --jq '.[].number')" ]]; then
+                echo "${branch} already has a PR, skipping"
+                echo "::endgroup::"
+                continue
+              fi
+              echo "${branch} exists without a PR, opening one"
+            else
+              git checkout -b "${branch}"
+              git commit -m "${name} ${tag}" -- "${file}"
+              git push origin "${branch}"
             fi
 
-            git checkout -b "${branch}"
-            git commit -m "${name} ${tag}" -- "${file}"
-            git push origin "${branch}"
-            gh pr create \
+            if ! gh pr create \
               --base main \
               --head "${branch}" \
               --title "${name} ${tag}" \
-              --body "Automated bump of \`${name}\` to \`${tag}\`. Checksums verified against upstream release assets."
+              --body "Automated bump of \`${name}\` to \`${tag}\`. Checksums verified against upstream release assets."; then
+              failed="${failed} ${file}"
+            fi
             echo "::endgroup::"
           done
 
