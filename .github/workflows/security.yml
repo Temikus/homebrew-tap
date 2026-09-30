@@ -49,7 +49,7 @@ jobs:
     runs-on: macos-26
     steps:
       - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@1e34f2e2acaa766b7efacb8c26352e6abbb023f9
+        uses: Homebrew/actions/setup-homebrew@848c272c7bfe984a197bd4d16383f4c106ec61e6
 
       # setup-homebrew recognises a homebrew-* repo as a tap and symlinks the
       # workspace into Library/Taps itself, which is what makes the checkout
