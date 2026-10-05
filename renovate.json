@@ -5,5 +5,17 @@
   ],
   "homebrew": {
     "enabled": false
-  }
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Track versions pinned with a # renovate: comment in workflows",
+      "managerFilePatterns": [
+        "/^\\.github/workflows/.+\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+VERSION=\"(?<currentValue>[^\"]+)\""
+      ]
+    }
+  ]
 }

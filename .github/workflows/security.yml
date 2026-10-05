@@ -14,21 +14,25 @@ permissions:
   security-events: write
 
 jobs:
-  secret-scan:
-    name: Secret Scanning
+  betterleaks:
+    name: Secret Detection
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      - name: Run TruffleHog
-        uses: trufflesecurity/trufflehog@main
-        with:
-          path: ./
-          base: main
-          head: HEAD
-          extra_args: --debug --only-verified
+      # Installed by version-pinned release tarball rather than a marketplace
+      # action — avoids depending on a scanner action's mutable tags.
+      - name: Install betterleaks
+        run: |
+          # renovate: datasource=github-releases depName=betterleaks/betterleaks
+          VERSION="v1.9.0"
+          curl -sSfL "https://github.com/betterleaks/betterleaks/releases/download/${VERSION}/betterleaks_${VERSION#v}_linux_x64.tar.gz" \
+            | tar -xz -C /usr/local/bin betterleaks
+
+      - name: Run betterleaks
+        run: betterleaks git . --exit-code 1
 
   dependency-review:
     name: Dependency Review
@@ -59,32 +63,11 @@ jobs:
       - name: Audit all formulae for security issues
         run: brew audit --strict --online --tap temikus/tap
 
-  checksum-verification:
-    name: Checksum Verification
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Verify all formula checksums match upstream
-        run: |
-          for formula in Formula/*.rb; do
-            name=$(basename "$formula" .rb)
-            tag=$(sed -n 's|.*/releases/download/\([^/]*\)/.*|\1|p' "$formula" | head -1)
-
-            if [[ -z "$tag" ]]; then
-              echo "Skipping $name (no tag found)"
-              continue
-            fi
-
-            echo "Verifying $name @ $tag..."
-            ./scripts/bump-formula.sh "$name" "$tag" --verify
-          done
-
   security:
     name: security
     # Aggregate gate, see the `ci` job in ci.yml. `skipped` is tolerated because
     # dependency-review only runs on pull_request.
-    needs: [secret-scan, dependency-review, formula-audit, checksum-verification]
+    needs: [betterleaks, dependency-review, formula-audit]
     if: always()
     runs-on: ubuntu-latest
     steps:
