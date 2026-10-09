@@ -88,7 +88,7 @@ jobs:
 
             case "${file}" in
               Casks/*) tag="$(./scripts/cask-tag.sh "${file}")" ;;
-              *) tag="$(sed -n 's|.*/releases/download/\([^/]*\)/.*|\1|p' "${file}" | head -1)" ;;
+              *) tag="$(./scripts/formula-tag.sh "${file}")" ;;
             esac
             branch="autobump/${name}-${tag}"
 
