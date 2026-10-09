@@ -11,6 +11,8 @@ class Openrig < Formula
   depends_on "node@24"
   depends_on "tmux"
 
+  conflicts_with "r-rig", "rig", because: "both install `rig` binary"
+
   def install
     system "npm", "install", *std_npm_args
     pkg = libexec/"lib/node_modules/@openrig/cli"
