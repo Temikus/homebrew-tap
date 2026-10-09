@@ -114,13 +114,9 @@ jobs:
         run: |
           for formula in Formula/*.rb; do
             name=$(basename "$formula" .rb)
-            tag="$(sed -n 's|.*/releases/download/\([^/]*\)/.*|\1|p' "$formula" | head -1)"
-            if [[ -n "$tag" ]]; then
-              echo "Checking $name @ $tag"
-              ./scripts/bump-formula.sh "$name" "$tag" --verify
-            else
-              echo "Skipping $name (no tag found)"
-            fi
+            tag=$(./scripts/formula-tag.sh "$formula")
+            echo "Checking $name @ $tag"
+            ./scripts/bump-formula.sh "$name" "$tag" --verify
           done
 
       - name: Re-bump each cask to pinned version and assert no drift

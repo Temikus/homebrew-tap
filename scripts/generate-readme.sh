@@ -47,9 +47,7 @@ do
 
   name=$(basename "${formula_file}" .rb)
 
-  # Extract version from url (tag in release URL)
-  version=$(grep -o '/releases/download/[^/]*' "${formula_file}" | head -1 | sed 's|.*/releases/download/||')
-  [[ -z "${version}" ]] && version="unknown"
+  version=$("${REPO_ROOT}/scripts/formula-tag.sh" "${formula_file}" 2>/dev/null || echo unknown)
 
   # Extract desc
   desc=$(grep '^  desc ' "${formula_file}" | sed 's/^  desc "//; s/"$//')
