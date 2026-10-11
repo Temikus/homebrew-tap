@@ -59,9 +59,49 @@ jobs:
       # workspace into Library/Taps itself, which is what makes the checkout
       # visible to brew audit, which only accepts formula names.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
-      - name: Audit all formulae for security issues
+      # --online fails any cask behind its upstream release, so a full-tap audit
+      # turns unrelated PRs red while a bump is pending. PRs and pushes audit
+      # only what changed; scheduled and manual runs audit the whole tap.
+      - name: Select formulae and casks
+        id: targets
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [[ "$EVENT" != "pull_request" && "$EVENT" != "push" ]] \
+            || ! git cat-file -e "${BASE}^{commit}" 2>/dev/null; then
+            echo "full=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          changed=$(git diff --name-only --diff-filter=AMR "$BASE" HEAD -- 'Formula/*.rb' 'Casks/*.rb')
+          echo "formulae=$(grep '^Formula/' <<<"$changed" | xargs -n1 basename -s .rb | xargs)" >> "$GITHUB_OUTPUT"
+          echo "casks=$(grep '^Casks/' <<<"$changed" | xargs -n1 basename -s .rb | xargs)" >> "$GITHUB_OUTPUT"
+
+      - name: Audit full tap
+        if: steps.targets.outputs.full == 'true'
         run: brew audit --strict --online --tap temikus/tap
+
+      - name: Audit changed formulae
+        if: steps.targets.outputs.formulae != ''
+        env:
+          FORMULAE: ${{ steps.targets.outputs.formulae }}
+        run: |
+          for f in $FORMULAE; do
+            brew audit --strict --online --formula "temikus/tap/$f"
+          done
+
+      - name: Audit changed casks
+        if: steps.targets.outputs.casks != ''
+        env:
+          CASKS: ${{ steps.targets.outputs.casks }}
+        run: |
+          brew trust temikus/tap
+          for c in $CASKS; do
+            brew audit --strict --online --cask "temikus/tap/$c"
+          done
 
   security:
     name: security
