@@ -60,28 +60,36 @@ jobs:
             done < <(find Formula Casks -name '*.rb' 2>/dev/null | sort)
           fi
 
-          # Close this repo's open autobump PRs for $1 except branch $2 (if
-          # any), so only the newest version of a package has an open PR.
-          # PRs are matched by title ("<name> <tag>") rather than branch prefix,
-          # so `foo` never touches `foo-cli`'s PRs.
+          # Close this repo's open autobump PRs for $1 at tag $2 or older,
+          # except branch $3 (if any), so only the newest version of a package
+          # has an open PR. A PR for a newer tag is kept even if upstream's
+          # latest release moves backwards. PRs are matched by title
+          # ("<name> <tag>") rather than branch prefix, so `foo` never touches
+          # `foo-cli`'s PRs.
           supersede() {
-            local name="$1" keep="${2:-}" reason="$3" numbers number
-            if ! numbers="$(gh pr list --state open --base main --limit 200 \
+            local name="$1" tag="$2" keep="${3:-}" reason="$4" prs number pr_tag
+            if ! prs="$(gh pr list --state open --base main --limit 200 \
               --json number,headRefName,title,isCrossRepository \
               | jq -r --arg name "${name}" --arg keep "${keep}" '.[]
                   | select(.isCrossRepository | not)
                   | select(.headRefName | startswith("autobump/"))
                   | select(.headRefName != $keep)
-                  | select((.title | split(" ")[0]) == $name)
-                  | .number')"; then
+                  | (.title | split(" ")) as $t
+                  | select($t[0] == $name)
+                  | "\(.number) \($t[1] // "")"')"; then
               echo "::warning::Could not list superseded PRs for ${name}"
               return 0
             fi
-            for number in ${numbers}; do
+            while read -r number pr_tag; do
+              [[ -n "${number}" ]] || continue
+              if [[ "$(printf '%s\n%s\n' "${pr_tag#v}" "${tag#v}" | sort -V | tail -1)" != "${tag#v}" ]]; then
+                echo "Keeping #${number}: ${pr_tag} is newer than ${tag}"
+                continue
+              fi
               echo "Closing #${number}: ${reason}"
               gh pr close "${number}" --delete-branch --comment "${reason}" \
                 || echo "::warning::Could not close #${number}"
-            done
+            done <<<"${prs}"
           }
 
           echo "Checking: ${files[*]}"
@@ -104,17 +112,23 @@ jobs:
               continue
             fi
 
-            if git diff --quiet -- "${file}"; then
-              echo "${name} already up to date"
-              supersede "${name}" "" "Superseded: \`${name}\` on \`main\` is already at the latest upstream release."
+            case "${file}" in
+              Casks/*) tag_script=./scripts/cask-tag.sh ;;
+              *) tag_script=./scripts/formula-tag.sh ;;
+            esac
+            if ! tag="$("${tag_script}" "${file}")"; then
+              failed="${failed} ${file}"
               echo "::endgroup::"
               continue
             fi
 
-            case "${file}" in
-              Casks/*) tag="$(./scripts/cask-tag.sh "${file}")" ;;
-              *) tag="$(./scripts/formula-tag.sh "${file}")" ;;
-            esac
+            if git diff --quiet -- "${file}"; then
+              echo "${name} already up to date"
+              supersede "${name}" "${tag}" "" "Superseded: \`${name}\` on \`main\` is already at \`${tag}\`."
+              echo "::endgroup::"
+              continue
+            fi
+
             branch="autobump/${name}-${tag}"
 
             # A branch without a PR means an earlier `gh pr create` failed; retry it.
@@ -124,7 +138,7 @@ jobs:
                 echo "${branch} already has a PR, skipping"
                 pr="$(gh pr list --head "${branch}" --state open --json number --jq '.[0].number // empty')"
                 if [[ -n "${pr}" ]]; then
-                  supersede "${name}" "${branch}" "Superseded by #${pr} (\`${name}\` \`${tag}\`)."
+                  supersede "${name}" "${tag}" "${branch}" "Superseded by #${pr} (\`${name}\` \`${tag}\`)."
                 fi
                 echo "::endgroup::"
                 continue
@@ -143,7 +157,7 @@ jobs:
               --body "Automated bump of \`${name}\` to \`${tag}\`. Checksums verified against upstream release assets.")"; then
               failed="${failed} ${file}"
             else
-              supersede "${name}" "${branch}" "Superseded by #${pr_url##*/} (\`${name}\` \`${tag}\`)."
+              supersede "${name}" "${tag}" "${branch}" "Superseded by #${pr_url##*/} (\`${name}\` \`${tag}\`)."
             fi
             echo "::endgroup::"
           done
