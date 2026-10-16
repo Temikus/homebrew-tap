@@ -29,14 +29,15 @@ brew trust temikus/tap
 | Formula | Version | Description | Install |
 |---------|---------|-------------|---------|
 | [fx](https://github.com/vercel-labs/fx) | v0.0.13 | Tiny, open, embeddable, native coding agent | `brew install temikus/tap/fx` |
-| [maki](https://maki.sh) | v0.6.0 | AI coding agent for the terminal, extendable by neovim-like Lua plugins | `brew install temikus/tap/maki` |
-| [openrig](https://openrig.dev) | v0.6.7 | Persistent teams of Claude Code, Codex and Pi agents with shared context | `brew install temikus/tap/openrig` |
+| [maki](https://maki.sh) | v0.6.3 | AI coding agent for the terminal, extendable by neovim-like Lua plugins | `brew install temikus/tap/maki` |
+| [openrig](https://openrig.dev) | v0.6.10 | Persistent teams of Claude Code, Codex and Pi agents with shared context | `brew install temikus/tap/openrig` |
 
 ## Casks
 
 | Cask | Version | Description | Install |
 |------|---------|-------------|---------|
-| [agent-orchestrator](https://useao.dev/) | v0.13.3 | Run and supervise teams of coding agents | `brew install --cask temikus/tap/agent-orchestrator` |
+| [agent-orchestrator](https://useao.dev/) | v0.14.1 | Run and supervise teams of coding agents | `brew install --cask temikus/tap/agent-orchestrator` |
+| [opendeck](https://github.com/nekename/OpenDeck) | v2.14.1 | Stream Deck software with support for Elgato plugins | `brew install --cask temikus/tap/opendeck` |
 
 ## Maintenance
 
