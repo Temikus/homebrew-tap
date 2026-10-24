@@ -10,23 +10,23 @@ class Maki < Formula
 
   on_macos do
     on_arm do
-      url "https://github.com/tontinton/maki/releases/download/v0.6.4/maki-v0.6.4-aarch64-apple-darwin.tar.gz"
-      sha256 "2122bf3909c44ead288d0aa9dc879eb14731d3cdda5889ccf03bf9a369f90d2c"
+      url "https://github.com/tontinton/maki/releases/download/v0.6.5/maki-v0.6.5-aarch64-apple-darwin.tar.gz"
+      sha256 "678fe77bb6c202f477a9f7897ed55b27bc71187d2da7edf428775f6a401ae7b8"
     end
     on_intel do
-      url "https://github.com/tontinton/maki/releases/download/v0.6.4/maki-v0.6.4-x86_64-apple-darwin.tar.gz"
-      sha256 "44966c2b0e30bafb9d71f1673924513108d454e412e3430af39c9fec668fd5a7"
+      url "https://github.com/tontinton/maki/releases/download/v0.6.5/maki-v0.6.5-x86_64-apple-darwin.tar.gz"
+      sha256 "e00068a885a7012dd7d03f3c1fe4794bf5699672b8fad229a75115cae6e43c31"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/tontinton/maki/releases/download/v0.6.4/maki-v0.6.4-aarch64-unknown-linux-musl.tar.gz"
-      sha256 "cf1bd089acfd24191a99abf93e37e12081bfea1745db6c4094ad3ec3dd74921f"
+      url "https://github.com/tontinton/maki/releases/download/v0.6.5/maki-v0.6.5-aarch64-unknown-linux-musl.tar.gz"
+      sha256 "457c8a1ae1ca5174f69abebc4169823bc8bdc96232c4fe4d88d51a6e60e1a263"
     end
     on_intel do
-      url "https://github.com/tontinton/maki/releases/download/v0.6.4/maki-v0.6.4-x86_64-unknown-linux-musl.tar.gz"
-      sha256 "1c02315bb5aa59f1fabbf15734e9a8c234e9ea6083f2788b769347f7bd94e87a"
+      url "https://github.com/tontinton/maki/releases/download/v0.6.5/maki-v0.6.5-x86_64-unknown-linux-musl.tar.gz"
+      sha256 "a8c5311a292201c728354add3aa27ed32d0ffd374f4f9d136ba3a92949fb5352"
     end
   end
 
