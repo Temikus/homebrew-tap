@@ -1,9 +1,9 @@
 cask "agent-orchestrator" do
   arch arm: "arm64", intel: "x64"
 
-  version "0.14.2"
-  sha256 arm:   "9f989fb2d96ed443938c1536b048a5850018330f916caa8807d6cb587db17529",
-         intel: "5fa803f40b08db9b0414ac30ee61a90e1f4cfb3404a90e05acf903345c351f44"
+  version "0.14.7"
+  sha256 arm:   "12eecc9cc90479caeed07ac3a1cd214db260d1fcc53060ecf1569424e951a694",
+         intel: "ac3caa26dd1163d48b689788b86e092a7f686b3c0b9bc5641e0928b00ab62953"
 
   url "https://github.com/Untrivial-ai/agent-orchestrator/releases/download/v#{version}/agent-orchestrator-darwin-#{arch}.zip"
   name "Agent Orchestrator"
