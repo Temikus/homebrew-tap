@@ -119,6 +119,80 @@ then
   exit 0
 fi
 
+# Untagged upstreams pin a commit archive. The version is 0.0.<UTC commit time>,
+# so newer commits sort higher and a later real release (0.1.0+) still wins.
+# The tag is v<version>; it resolves to the pinned commit or the branch head.
+ARCHIVE_URL=$(sed -n 's|^  url "\(https://github\.com/[^/]*/[^/]*/archive/[0-9a-f]\{40\}\.tar\.gz\)"$|\1|p' "${FORMULA_FILE}" | head -1)
+
+if [[ -n "${ARCHIVE_URL}" ]]
+then
+  UPSTREAM_REPO=$(sed -n 's|^https://github\.com/\([^/]*/[^/]*\)/archive/.*|\1|p' <<<"${ARCHIVE_URL}")
+  CURRENT_SHA=$(sed -n 's|.*/archive/\([0-9a-f]*\)\.tar\.gz$|\1|p' <<<"${ARCHIVE_URL}")
+  CURRENT_VERSION=$(sed -n 's|^  version "\(.*\)"$|\1|p' "${FORMULA_FILE}" | head -1)
+  BRANCH=$(sed -n 's|^  head ".*", branch: "\(.*\)"$|\1|p' "${FORMULA_FILE}" | head -1)
+  BRANCH="${BRANCH:-main}"
+
+  github_api() {
+    if [[ -n "${GH_TOKEN:-}" ]]
+    then
+      curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" "https://api.github.com/repos/${UPSTREAM_REPO}/$1"
+    else
+      curl -fsSL "https://api.github.com/repos/${UPSTREAM_REPO}/$1"
+    fi
+  }
+
+  echo "Formula: ${FORMULA_NAME}"
+  echo "Upstream: ${UPSTREAM_REPO}@${BRANCH}"
+  echo "Current version: ${CURRENT_VERSION} (${CURRENT_SHA})"
+
+  if [[ -z "${TAG}" ]]
+  then
+    SHA=$(github_api "commits/${BRANCH}" | jq -r '.sha // empty')
+  elif [[ "${TAG}" == "v${CURRENT_VERSION}" ]]
+  then
+    SHA="${CURRENT_SHA}"
+  elif [[ "${TAG}" =~ ^[0-9a-f]{40}$ ]]
+  then
+    SHA="${TAG}"
+  else
+    echo "Cannot resolve ${TAG} to a commit; pass a full commit sha" >&2
+    exit 1
+  fi
+
+  if [[ -z "${SHA}" ]]
+  then
+    echo "Could not resolve head of ${BRANCH}" >&2
+    exit 1
+  fi
+
+  # 2026-11-02T10:26:14Z -> 20261102.1026
+  COMMIT_TIME=$(github_api "commits/${SHA}" | jq -r '.commit.committer.date // empty')
+  STAMP=$(sed -n 's|^\([0-9]\{4\}\)-\([0-9]\{2\}\)-\([0-9]\{2\}\)T\([0-9]\{2\}\):\([0-9]\{2\}\):.*Z$|\1\2\3.\4\5|p' <<<"${COMMIT_TIME}")
+  if [[ -z "${STAMP}" ]]
+  then
+    echo "Could not read UTC commit time for ${SHA}: '${COMMIT_TIME}'" >&2
+    exit 1
+  fi
+
+  VERSION="0.0.${STAMP}"
+  TAG="v${VERSION}"
+  echo "Target: ${VERSION} (${SHA})"
+
+  NEW_URL="https://github.com/${UPSTREAM_REPO}/archive/${SHA}.tar.gz"
+  SUM=$(curl -fsSL "${NEW_URL}" | sha256_of_stdin)
+
+  awk -v old="${ARCHIVE_URL}" -v new="${NEW_URL}" -v ver="${VERSION}" -v sum="${SUM}" '
+        $0 == "  url \"" old "\"" { $0 = "  url \"" new "\"" }
+        /^  version "/ { $0 = "  version \"" ver "\"" }
+        /^  sha256 "/ { $0 = "  sha256 \"" sum "\"" }
+        { print }
+    ' "${FORMULA_FILE}" >"${TMP_FILE}" && mv "${TMP_FILE}" "${FORMULA_FILE}"
+
+  echo "  ${NEW_URL} ${SUM}"
+  finish
+  exit 0
+fi
+
 # Extract upstream repo from the release urls (homepage may point elsewhere)
 UPSTREAM_REPO=$(sed -n 's|.*github\.com/\([^/]*/[^/]*\)/releases/download/.*|\1|p' "${FORMULA_FILE}" | head -1)
 

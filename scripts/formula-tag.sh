@@ -15,6 +15,13 @@ then
   [[ -n "${version}" ]] && tag="v${version}"
 fi
 
+# Commit-archive formulae have no tag; bump-formula.sh maps v<version> back to the pinned commit.
+if [[ -z "${tag}" ]] && grep -qE '^  url "https://github\.com/[^/]+/[^/]+/archive/[0-9a-f]{40}\.tar\.gz"$' "${FORMULA_FILE}"
+then
+  version=$(sed -n 's|^  version "\(.*\)"$|\1|p' "${FORMULA_FILE}" | head -1)
+  [[ -n "${version}" ]] && tag="v${version}"
+fi
+
 if [[ -z "${tag}" ]]
 then
   echo "Could not read a release or npm url from ${FORMULA_FILE}" >&2
