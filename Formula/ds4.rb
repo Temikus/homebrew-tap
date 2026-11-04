@@ -1,9 +1,9 @@
 class Ds4 < Formula
   desc "DeepSeek V4, GLM and Qwen local inference engine for Apple Silicon"
   homepage "https://github.com/antirez/ds4"
-  url "https://github.com/antirez/ds4/archive/890898cfb437ed256be58ebcf7c58a6dfa8f2f53.tar.gz"
-  version "0.0.20261102.1026"
-  sha256 "b3185de7483739e16973851241a6a19e2f63c603fa417e94e8944d789141d9ab"
+  url "https://github.com/antirez/ds4/archive/b3f50180ec2c7324892be1f50bc83555ccb8d5e7.tar.gz"
+  version "0.0.20261103.1555"
+  sha256 "7f8f6793940806edfcce3260ef83eea2d2e3d141c5bd646dc482a4a54cc722dc"
   license "MIT"
   head "https://github.com/antirez/ds4.git", branch: "main"
 
