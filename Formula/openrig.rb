@@ -3,8 +3,8 @@ class Openrig < Formula
 
   desc "Persistent teams of Claude Code, Codex and Pi agents with shared context"
   homepage "https://openrig.dev"
-  url "https://registry.npmjs.org/@openrig/cli/-/cli-0.6.14.tgz"
-  sha256 "67b8f40338e73ab99bd4a48a0f7735e3938c2b385726d918b9e87dffb8faf927"
+  url "https://registry.npmjs.org/@openrig/cli/-/cli-0.7.9.tgz"
+  sha256 "668b9305ac38ecf919253930a7cba5c0535c2d30a5cbc0b11076e5999d31953c"
   license "Apache-2.0"
 
   # Upstream supports Node 22 and 24 only. Homebrew's `node` is newer.
