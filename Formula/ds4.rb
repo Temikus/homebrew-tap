@@ -13,7 +13,8 @@ class Ds4 < Formula
   end
 
   depends_on arch: :arm64
-  depends_on :macos
+  # Upstream uses MTLResidencySet, which needs the macOS 15 SDK.
+  depends_on macos: :sequoia
 
   def install
     system "make", "NATIVE_CPU_FLAG=", "DEBUG_FLAGS="
