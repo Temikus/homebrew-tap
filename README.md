@@ -28,16 +28,17 @@ brew trust temikus/tap
 
 | Formula | Version | Description | Install |
 |---------|---------|-------------|---------|
-| [fx](https://github.com/vercel-labs/fx) | v0.0.13 | Tiny, open, embeddable, native coding agent | `brew install temikus/tap/fx` |
-| [maki](https://maki.sh) | v0.6.3 | AI coding agent for the terminal, extendable by neovim-like Lua plugins | `brew install temikus/tap/maki` |
-| [openrig](https://openrig.dev) | v0.6.10 | Persistent teams of Claude Code, Codex and Pi agents with shared context | `brew install temikus/tap/openrig` |
+| [ds4](https://github.com/antirez/ds4) | v0.0.20261102.1026 | DeepSeek V4, GLM and Qwen local inference engine for Apple Silicon | `brew install temikus/tap/ds4` |
+| [fx](https://github.com/vercel-labs/fx) | v0.0.14 | Tiny, open, embeddable, native coding agent | `brew install temikus/tap/fx` |
+| [maki](https://maki.sh) | v0.6.4 | AI coding agent for the terminal, extendable by neovim-like Lua plugins | `brew install temikus/tap/maki` |
+| [openrig](https://openrig.dev) | v0.6.14 | Persistent teams of Claude Code, Codex and Pi agents with shared context | `brew install temikus/tap/openrig` |
 
 ## Casks
 
 | Cask | Version | Description | Install |
 |------|---------|-------------|---------|
-| [agent-orchestrator](https://useao.dev/) | v0.14.1 | Run and supervise teams of coding agents | `brew install --cask temikus/tap/agent-orchestrator` |
-| [opendeck](https://github.com/nekename/OpenDeck) | v2.14.1 | Stream Deck software with support for Elgato plugins | `brew install --cask temikus/tap/opendeck` |
+| [agent-orchestrator](https://useao.dev/) | v0.14.2 | Run and supervise teams of coding agents | `brew install --cask temikus/tap/agent-orchestrator` |
+| [opendeck](https://github.com/nekename/OpenDeck) | v2.14.2 | Stream Deck software with support for Elgato plugins | `brew install --cask temikus/tap/opendeck` |
 
 ## Maintenance
 
