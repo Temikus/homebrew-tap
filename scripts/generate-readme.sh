@@ -5,7 +5,9 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${0}")/.." && pwd)"
 README_FILE="${REPO_ROOT}/README.md"
+# mktemp files are 0600, and mv carries that onto the tracked file.
 TMP_README=$(mktemp)
+chmod 644 "${TMP_README}"
 
 cat >"${TMP_README}" <<'EOF'
 # temikus/tap

@@ -75,7 +75,9 @@ sha256_of_stdin() {
   fi
 }
 
+# mktemp files are 0600, and mv carries that onto the tracked file.
 TMP_FILE=$(mktemp)
+chmod 644 "${TMP_FILE}"
 
 # npm-published formulae have no GitHub release assets. The registry only
 # publishes sha1/sha512 digests, so the tarball is downloaded for its sha256.
