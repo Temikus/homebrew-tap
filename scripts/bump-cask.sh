@@ -129,7 +129,9 @@ asset_for() {
   echo "${asset//'#{arch}'/$1}"
 }
 
+# mktemp files are 0600, and mv carries that onto the tracked file.
 TMP_FILE=$(mktemp)
+chmod 644 "${TMP_FILE}"
 sed "s|^  version \".*\"|  version \"${VERSION}\"|" "${CASK_FILE}" >"${TMP_FILE}" &&
   mv "${TMP_FILE}" "${CASK_FILE}"
 
