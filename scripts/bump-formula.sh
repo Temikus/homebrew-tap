@@ -119,6 +119,63 @@ then
   exit 0
 fi
 
+# herdr publishes a JSON manifest with a url and sha256 per target instead of
+# GitHub releases. Asset names carry the target, e.g. herdr-core-macos-aarch64.
+HERDR_URL=$(sed -n 's|^      url "\(https://releases\.herdr\.dev/core/[^/]*/[^"]*\)"$|\1|p' "${FORMULA_FILE}" | head -1)
+
+if [[ -n "${HERDR_URL}" ]]
+then
+  CURRENT_VERSION=$(sed -n 's|^  version "\(.*\)"$|\1|p' "${FORMULA_FILE}" | head -1)
+
+  echo "Formula: ${FORMULA_NAME}"
+  echo "Upstream: releases.herdr.dev"
+  echo "Current version: ${CURRENT_VERSION}"
+
+  if [[ -z "${TAG}" ]]
+  then
+    MANIFEST_URL="https://releases.herdr.dev/core/latest.json"
+  else
+    MANIFEST_URL="https://releases.herdr.dev/core/${TAG#v}/manifest.json"
+  fi
+  MANIFEST=$(curl -fsSL "${MANIFEST_URL}")
+  VERSION=$(jq -r '.version // empty' <<<"${MANIFEST}")
+  if [[ -z "${VERSION}" ]]
+  then
+    echo "No version in ${MANIFEST_URL}" >&2
+    exit 1
+  fi
+  TAG="v${VERSION}"
+  echo "Target version: ${VERSION}"
+
+  cp "${FORMULA_FILE}" "${TMP_FILE}"
+  sed -i.bak "s|^  version \".*\"$|  version \"${VERSION}\"|" "${TMP_FILE}"
+  rm -f "${TMP_FILE}.bak"
+
+  OLD_URLS=$(sed -n 's|^      url "\(https://releases\.herdr\.dev/[^"]*\)"$|\1|p' "${FORMULA_FILE}")
+  while IFS= read -r old_url
+  do
+    target=$(sed -n 's|.*/herdr-core-\([a-z0-9_-]*\)\.tar\.gz$|\1|p' <<<"${old_url}")
+    new_url=$(jq -r --arg t "${target}" '.targets[$t].url // empty' <<<"${MANIFEST}")
+    sum=$(jq -r --arg t "${target}" '.targets[$t].sha256 // empty' <<<"${MANIFEST}")
+    if [[ -z "${target}" ]] || [[ -z "${new_url}" ]] || [[ -z "${sum}" ]]
+    then
+      echo "No ${target:-target} entry for ${old_url} in ${MANIFEST_URL}" >&2
+      exit 1
+    fi
+
+    awk -v old="${old_url}" -v new="${new_url}" -v sum="${sum}" '
+          $0 ~ /^ *url "/ && index($0, "\"" old "\"") { sub(/url ".*"/, "url \"" new "\""); hit = 1 }
+          hit && /^ *sha256 "/ { sub(/sha256 "[0-9a-f]*"/, "sha256 \"" sum "\""); hit = 0 }
+          { print }
+      ' "${TMP_FILE}" >"${TMP_FILE}.new" && mv "${TMP_FILE}.new" "${TMP_FILE}"
+    echo "  ${new_url} ${sum}"
+  done <<<"${OLD_URLS}"
+
+  mv "${TMP_FILE}" "${FORMULA_FILE}"
+  finish
+  exit 0
+fi
+
 # Untagged upstreams pin a commit archive. The version is 0.0.<UTC commit time>,
 # so newer commits sort higher and a later real release (0.1.0+) still wins.
 # The tag is v<version>; it resolves to the pinned commit or the branch head.
