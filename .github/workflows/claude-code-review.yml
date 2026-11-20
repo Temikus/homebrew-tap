@@ -16,7 +16,10 @@ jobs:
     # action cannot authenticate and the job fails unconditionally. Skip them here;
     # a maintainer can still trigger a review by commenting `@claude` (claude.yml
     # runs on issue_comment in base-repo context, where both are available).
-    if: github.event.pull_request.head.repo.fork == false
+    # Review only PRs authored by the owner or dependency bots.
+    if: |
+      github.event.pull_request.head.repo.fork == false &&
+      contains(fromJSON('["Temikus", "dependabot[bot]", "renovate[bot]"]'), github.event.pull_request.user.login)
 
     runs-on: ubuntu-latest
     permissions:
