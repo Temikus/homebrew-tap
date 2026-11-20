@@ -36,6 +36,7 @@ jobs:
 
       - name: Run Claude Code Review
         id: claude-review
+        if: ${{ !startsWith(github.head_ref, 'autobump/') }}
         uses: anthropics/claude-code-action@cc98b3ae241b0fcfb6a42a2690751afffecb4452 # v1.0.278
         with:
           allowed_bots: "dependabot[bot],renovate[bot]"
@@ -45,3 +46,33 @@ jobs:
           prompt: "/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}"
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
+
+      # Autobump PRs auto-merge, so Claude must explicitly approve them.
+      # The plugin review above skips them as automated PRs.
+      - name: Review bump
+        id: bump-review
+        if: startsWith(github.head_ref, 'autobump/')
+        uses: anthropics/claude-code-action@cc98b3ae241b0fcfb6a42a2690751afffecb4452 # v1.0.278
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Review autobump PR #${{ github.event.pull_request.number }} in ${{ github.repository }}.
+            It should only bump one Homebrew formula or cask to a new upstream release.
+            Read the change with `gh pr diff ${{ github.event.pull_request.number }}`.
+
+            Approve only if all of these hold:
+            - Exactly one file changes, under Formula/ or Casks/.
+            - Only `version`, `url`, and `sha256` lines change.
+            - Every changed URL keeps the same host and upstream owner/repo, and only the version in it changes.
+            - No dependency, install, test, caveats, or other logic is added or changed.
+
+            Otherwise reject. In the summary, say what you checked and why you approved or rejected.
+          claude_args: |
+            --allowedTools "Bash(gh pr diff:*),Bash(gh pr view:*)"
+            --json-schema '{"type":"object","properties":{"approve":{"type":"boolean"},"summary":{"type":"string"}},"required":["approve","summary"],"additionalProperties":false}'
+
+      - name: Require Claude approval
+        if: startsWith(github.head_ref, 'autobump/')
+        env:
+          VERDICT: ${{ steps.bump-review.outputs.structured_output }}
+        run: ./scripts/claude-verdict.sh

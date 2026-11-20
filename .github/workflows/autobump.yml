@@ -92,6 +92,13 @@ jobs:
             done <<<"${prs}"
           }
 
+          # Squash-merge PR $1 once branch protection's required checks pass,
+          # including Claude's approval in claude-code-review.yml.
+          automerge() {
+            gh pr merge --auto --squash "$1" \
+              || echo "::warning::Could not enable auto-merge on $1"
+          }
+
           echo "Checking: ${files[*]}"
           failed=""
           base_sha="$(git rev-parse HEAD)"
@@ -139,6 +146,7 @@ jobs:
                 pr="$(gh pr list --head "${branch}" --state open --json number --jq '.[0].number // empty')"
                 if [[ -n "${pr}" ]]; then
                   supersede "${name}" "${tag}" "${branch}" "Superseded by #${pr} (\`${name}\` \`${tag}\`)."
+                  automerge "${pr}"
                 fi
                 echo "::endgroup::"
                 continue
@@ -158,6 +166,7 @@ jobs:
               failed="${failed} ${file}"
             else
               supersede "${name}" "${tag}" "${branch}" "Superseded by #${pr_url##*/} (\`${name}\` \`${tag}\`)."
+              automerge "${pr_url}"
             fi
             echo "::endgroup::"
           done
