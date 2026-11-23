@@ -114,7 +114,7 @@ Requires [`just`](https://github.com/casey/just):
 
 ## CI / Automation
 
-- **CI** (`.github/workflows/ci.yml`): Runs on every push/PR — syntax check, style, audit, test on macOS 14/15 + Ubuntu, cask audit and install on macOS
+- **CI** (`.github/workflows/ci.yml`): Runs on every push/PR — syntax check, style, audit, test on macOS 26/27 + Ubuntu, cask audit and install on macOS 27
 - **Auto-bump** (`.github/workflows/autobump.yml`): Daily check for upstream formula and cask updates, opens PRs
 - **Scheduled** (`.github/workflows/scheduled.yml`): Weekly full audit
 - **Security** (`.github/workflows/security.yml`): Secret scanning, dependency review

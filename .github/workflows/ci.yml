@@ -12,7 +12,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-26, ubuntu-latest]
+        # xcode-27 is the only macOS 27 image until a macos-27 label exists.
+        os: [macos-26, xcode-27, ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Set up Homebrew
@@ -57,7 +58,8 @@ jobs:
 
   cask:
     name: Cask audit and install
-    runs-on: macos-26
+    # The only macOS 27 image (public preview); openrig-app needs 27 to install.
+    runs-on: xcode-27
     steps:
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@e99025eb970cfa124b8284a35463d87426917478

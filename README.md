@@ -29,17 +29,18 @@ brew trust temikus/tap
 | Formula | Version | Description | Install |
 |---------|---------|-------------|---------|
 | [ds4](https://github.com/antirez/ds4) | v0.0.20261103.1555 | DeepSeek V4, GLM and Qwen local inference engine for Apple Silicon | `brew install temikus/tap/ds4` |
-| [fx](https://github.com/vercel-labs/fx) | v0.0.16 | Tiny, open, embeddable, native coding agent | `brew install temikus/tap/fx` |
-| [herdr-core](https://herdr.dev) | v0.1.20 | Run programs and coding agents in terminals that stay alive | `brew install temikus/tap/herdr-core` |
-| [maki](https://maki.sh) | v0.7.1 | AI coding agent for the terminal, extendable by neovim-like Lua plugins | `brew install temikus/tap/maki` |
-| [openrig](https://openrig.dev) | v0.7.10 | Persistent teams of Claude Code, Codex and Pi agents with shared context | `brew install temikus/tap/openrig` |
+| [fx](https://github.com/vercel-labs/fx) | v0.0.17 | Tiny, open, embeddable, native coding agent | `brew install temikus/tap/fx` |
+| [herdr-core](https://herdr.dev) | v0.1.21 | Run programs and coding agents in terminals that stay alive | `brew install temikus/tap/herdr-core` |
+| [maki](https://maki.sh) | v0.7.3 | AI coding agent for the terminal, extendable by neovim-like Lua plugins | `brew install temikus/tap/maki` |
+| [openrig](https://openrig.dev) | v0.7.19 | Persistent teams of Claude Code, Codex and Pi agents with shared context | `brew install temikus/tap/openrig` |
 
 ## Casks
 
 | Cask | Version | Description | Install |
 |------|---------|-------------|---------|
-| [agent-orchestrator](https://useao.dev/) | v0.14.10 | Run and supervise teams of coding agents | `brew install --cask temikus/tap/agent-orchestrator` |
+| [agent-orchestrator](https://useao.dev/) | v0.15.3 | Run and supervise teams of coding agents | `brew install --cask temikus/tap/agent-orchestrator` |
 | [opendeck](https://github.com/nekename/OpenDeck) | v2.14.2 | Stream Deck software with support for Elgato plugins | `brew install --cask temikus/tap/opendeck` |
+| [openrig-app](https://github.com/Temikus/openrig-app) | v0.1.0 | See what each agent seat in an OpenRig rig is doing and act on it | `brew install --cask temikus/tap/openrig-app` |
 
 ## Maintenance
 
@@ -63,7 +64,7 @@ Requires [`just`](https://github.com/casey/just):
 
 ## CI / Automation
 
-- **CI** (`.github/workflows/ci.yml`): Runs on every push/PR — syntax check, style, audit, test on macOS 14/15 + Ubuntu, cask audit and install on macOS
+- **CI** (`.github/workflows/ci.yml`): Runs on every push/PR — syntax check, style, audit, test on macOS 26/27 + Ubuntu, cask audit and install on macOS 27
 - **Auto-bump** (`.github/workflows/autobump.yml`): Daily check for upstream formula and cask updates, opens PRs
 - **Scheduled** (`.github/workflows/scheduled.yml`): Weekly full audit
 - **Security** (`.github/workflows/security.yml`): Secret scanning, dependency review
