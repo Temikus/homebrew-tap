@@ -1,0 +1,11 @@
+version: "0.2"
+name: upgrade-test
+pods:
+  - id: work
+    label: Work
+    members:
+      - {id: one, agent_ref: "local:agents/worker", profile: default, runtime: stub, cwd: .}
+      - {id: two, agent_ref: "local:agents/worker", profile: default, runtime: stub, cwd: .}
+      - {id: three, agent_ref: "local:agents/worker", profile: default, runtime: stub, cwd: .}
+    edges: []
+edges: []

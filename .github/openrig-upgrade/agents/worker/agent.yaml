@@ -1,0 +1,6 @@
+name: worker
+version: "1.0"
+profiles:
+  default:
+    uses:
+      skills: []

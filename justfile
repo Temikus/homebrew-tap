@@ -55,6 +55,10 @@ bump-cask CASK:
 verify-bump-cask CASK:
 	./scripts/bump-cask.sh {{CASK}} "$(./scripts/cask-tag.sh Casks/{{CASK}}.rb)" --verify
 
+# Real openrig upgrade test (daemon|no-daemon). Replaces the installed keg.
+openrig-upgrade-test SCENARIO FROM="":
+	./.github/openrig-upgrade/run.sh {{SCENARIO}} {{FROM}}
+
 # Lint the whole tap (formulae, casks, workflows, shell scripts)
 style:
 	brew style .

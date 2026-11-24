@@ -1,0 +1,38 @@
+name: openrig upgrade
+
+on:
+  pull_request:
+    paths:
+      - Formula/openrig.rb
+      - .github/openrig-upgrade/**
+      - .github/workflows/openrig-upgrade.yml
+  workflow_dispatch:
+    inputs:
+      from_version:
+        description: npm version to upgrade from (default the release before the formula's)
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  upgrade:
+    name: brew upgrade (${{ matrix.scenario }})
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [daemon, no-daemon]
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@e99025eb970cfa124b8284a35463d87426917478
+
+      - uses: actions/checkout@v7
+
+      - run: brew trust temikus/tap
+
+      - name: Upgrade openrig
+        env:
+          FROM_VERSION: ${{ inputs.from_version }}
+        run: ./.github/openrig-upgrade/run.sh "${{ matrix.scenario }}" "${FROM_VERSION}"
