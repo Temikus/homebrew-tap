@@ -27,6 +27,16 @@ class Openrig < Formula
     end
   end
 
+  # post_install can't restart the daemon: its sandbox blocks writes to ~/.openrig and tmux.
+  def caveats
+    <<~EOS
+      If an OpenRig daemon was running during this upgrade, it is still on the
+      old version and can fail once Homebrew removes the old files. Restart it
+      on the new version; tmux seats are kept:
+        rig daemon stop && rig daemon start
+    EOS
+  end
+
   test do
     assert_match version.to_s, shell_output("#{bin}/rig --version")
     # Upstream's install check: loads better-sqlite3 and opens a database.
