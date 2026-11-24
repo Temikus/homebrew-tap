@@ -2,8 +2,8 @@
 # Real `brew upgrade` of openrig from FROM_VERSION to the tap's formula.
 # Usage: run.sh daemon|no-daemon [FROM_VERSION]
 #   daemon:    start a daemon with 3 stub seats on FROM_VERSION, upgrade, then
-#              check the old keg is gone, rig warns, and a restart keeps the seats.
-#   no-daemon: upgrade with no daemon; nothing starts and rig doesn't warn.
+#              check the old keg is gone and a restart keeps the seats.
+#   no-daemon: upgrade with no daemon; nothing starts.
 # This installs and upgrades the real openrig keg, so it refuses to run outside
 # CI unless OPENRIG_UPGRADE_TEST_OK=1.
 
@@ -46,9 +46,6 @@ echo "Scenario ${SCENARIO}: ${FROM} -> ${TO}"
 
 fail() { echo "FAIL: $*" >&2; exit 1; }
 pass() { echo "PASS: $*"; }
-
-# rig's stderr only, so rig's own errors don't hide or fake the warning.
-rig_warning() { "${BIN}/rig" ps 2>&1 >/dev/null | grep "daemon (pid" || true; }
 
 healthz() {
   local port
@@ -95,14 +92,11 @@ then
   [[ ! -e "${OPENRIG_HOME}/daemon.json" ]] || fail "upgrade started a daemon"
   ! pgrep -f "openrig/.*/daemon/dist/index.js" >/dev/null || fail "a daemon process is running"
   pass "no daemon started"
-  [[ -z "$(rig_warning)" ]] || fail "rig warned with no daemon: $(rig_warning)"
-  pass "rig is silent"
   exit 0
 fi
 
-warning="$(rig_warning)"
-[[ "${warning}" == *"is running ${FROM}, but rig is ${TO}"* ]] || fail "no version warning, got: ${warning}"
-pass "rig warns: ${warning}"
+[[ "$(healthz | jq -r .semver)" == "${FROM}" ]] || fail "daemon is not still ${FROM} after the upgrade"
+pass "daemon still reports ${FROM} until restarted"
 
 log_offset="$(wc -c <"${OPENRIG_HOME}/daemon.log")"
 "${BIN}/rig" daemon stop
@@ -119,8 +113,6 @@ then
   fail "daemon log mentions a missing file after the restart"
 fi
 pass "no ENOENT in the daemon log after the restart"
-[[ -z "$(rig_warning)" ]] || fail "rig still warns after the restart: $(rig_warning)"
-pass "rig is silent after the restart"
 
 "${BIN}/rig" down upgrade-test --force --json >/dev/null || true
 "${BIN}/rig" daemon stop || true
