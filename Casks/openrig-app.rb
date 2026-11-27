@@ -1,6 +1,6 @@
 cask "openrig-app" do
-  version "0.2.2"
-  sha256 "3a5682033f44264659d58b59d234d11a6358c17e59fcc9b458cdf61fce55a94f"
+  version "0.3.0"
+  sha256 "2fba95b20cc8a0ef340626945a9277db6dd58d70c6869735498335a9e9eb57f3"
 
   url "https://github.com/Temikus/openrig-app/releases/download/v#{version}/OpenRig-#{version}.dmg"
   name "OpenRig"
